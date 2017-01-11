@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">FirebaseChatApp</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="google_sign_in">Google Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="invalid_input">Invalid input</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="add_room">Add Room</string>
+    <string name="enter_room_name">Enter Room name</string>
+
+
+</resources>
