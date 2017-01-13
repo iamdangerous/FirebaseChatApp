@@ -40,7 +40,13 @@
         <service android:name=".MyServices.SampleService"
             android:enabled="true"
             ></service>
-        <activity android:name=".activities.ChatActivity"></activity>
+
+        <activity android:name=".activities.ChatActivity"
+            android:parentActivityName=".activities.ChatRoomActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.ChatRoomActivity"/>
+        </activity>
     </application>
 
 </manifest>

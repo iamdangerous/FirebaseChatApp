@@ -1,7 +1,9 @@
 package com.android.rahul_lohra.firebasechatapp.activities;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -18,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.rahul_lohra.firebasechatapp.Constants;
 import com.android.rahul_lohra.firebasechatapp.R;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -101,9 +104,12 @@ public class ChatRoomActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
+                SharedPreferences sp = getSharedPreferences(Constants.SP_NAME, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putString(Constants.USER_NAME_KEY,name);
+                editor.putString(Constants.ROOM_NAME_KEY,((TextView)view).getText().toString());
+                editor.apply();
                 Intent intent = new Intent(getApplicationContext(),ChatActivity.class);
-                intent.putExtra("room_name",((TextView)view).getText().toString() );
-                intent.putExtra("user_name",name);
                 startActivity(intent);
             }
         });

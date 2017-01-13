@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -13,10 +14,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.android.rahul_lohra.firebasechatapp.Constants;
+import com.android.rahul_lohra.firebasechatapp.KeysTable;
 import com.android.rahul_lohra.firebasechatapp.MyServices.SampleService;
 import com.android.rahul_lohra.firebasechatapp.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,11 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
-public class ChatActivity  extends AppCompatActivity{
+public class ChatActivity  extends AppCompatActivity implements ChildEventListener{
 
     private Button btn_send_msg;
     private EditText input_msg;
@@ -43,22 +40,28 @@ public class ChatActivity  extends AppCompatActivity{
 
     SampleService mService;
     boolean mBound = false;
+    SharedPreferences sp ;
+    KeysTable keysTable;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        keysTable = new KeysTable(getApplicationContext());
 
+        sp  = getSharedPreferences(Constants.SP_NAME, Context.MODE_PRIVATE);
         btn_send_msg = (Button) findViewById(R.id.btn_send);
         input_msg = (EditText) findViewById(R.id.msg_input);
         chat_conversation = (TextView) findViewById(R.id.textView);
 
-        user_name = getIntent().getExtras().get("user_name").toString();
-        room_name = getIntent().getExtras().get("room_name").toString();
+        user_name = sp.getString(Constants.USER_NAME_KEY,null);
+        room_name = sp.getString(Constants.ROOM_NAME_KEY,null);
+
         setTitle(" Room - "+room_name);
 
         root = FirebaseDatabase.getInstance().getReference().child(room_name);
-//        mService.hello(root);
+//        if(mService!=null)
+//            mService.hello(root);
 
 
         btn_send_msg.setOnClickListener(new View.OnClickListener() {
@@ -78,35 +81,7 @@ public class ChatActivity  extends AppCompatActivity{
             }
         });
 
-        root.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
-                append_chat_conversation(dataSnapshot);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                append_chat_conversation(dataSnapshot);
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        root.addChildEventListener(this);
 
     }
 
@@ -114,18 +89,20 @@ public class ChatActivity  extends AppCompatActivity{
     protected void onStart() {
         super.onStart();
         // Bind to LocalService
-//        Intent intent = new Intent(this, SampleService.class);
-//        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(this, SampleService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        root.removeEventListener(this);
         // Unbind from the service
-//        if (mBound) {
-//            unbindService(mConnection);
-//            mBound = false;
-//        }
+        if (mBound) {
+            mService.addChatListener();
+            unbindService(mConnection);
+            mBound = false;
+        }
     }
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -135,6 +112,7 @@ public class ChatActivity  extends AppCompatActivity{
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             SampleService.LocalBinder binder = (SampleService.LocalBinder) service;
             mService = binder.getService();
+            mService.hello(root);
             mBound = true;
         }
 
@@ -149,6 +127,9 @@ public class ChatActivity  extends AppCompatActivity{
     private void append_chat_conversation(DataSnapshot dataSnapshot) {
 
         Iterator i = dataSnapshot.getChildren().iterator();
+        String key = dataSnapshot.getKey();
+//        sp.edit().putString(Constants.MESSAGE_KEY,key).apply();
+        keysTable.addKeys(key);
 
         while (i.hasNext()){
 
@@ -159,5 +140,37 @@ public class ChatActivity  extends AppCompatActivity{
         }
 
 
+    }
+
+    @Override
+    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+        append_chat_conversation(dataSnapshot);
+    }
+
+    @Override
+    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        append_chat_conversation(dataSnapshot);
+    }
+
+    @Override
+    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+    }
+
+    @Override
+    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+    }
+
+    @Override
+    public void onCancelled(DatabaseError databaseError) {
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        startActivity(new Intent(this,ChatRoomActivity.class));
+        finish();
     }
 }
