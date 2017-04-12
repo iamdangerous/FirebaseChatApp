@@ -72,8 +72,19 @@ public class ChatRoomActivity extends AppCompatActivity {
 
         adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,list_of_rooms);
         listView.setAdapter(adapter);
+        Intent intent = getIntent();
+        if(true)
+        {
+            String action = intent.getAction();
+            String s1 = intent.getParcelableExtra("mykey");
+            Bundle bundle = intent.getExtras();
+            if(bundle!=null){
+                String s2 = bundle.getString("mykey");
+                System.out.println("***********************");
+            }
 
-        request_user_name();
+        }
+//        request_user_name();
 
 
 
